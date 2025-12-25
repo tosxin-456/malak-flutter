@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:malak/components/fingerprint_login.dart';
 import 'package:malak/components/signin_with_google.dart';
+import 'package:malak/services/storage_service.dart';
 import '../routes/app_routes.dart';
 import '../config/api_config.dart';
 import 'dart:convert';
@@ -12,6 +14,7 @@ class SignInScreen extends StatefulWidget {
   @override
   State<SignInScreen> createState() => _SignInScreenState();
 }
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
 class _SignInScreenState extends State<SignInScreen> {
   final _emailController = TextEditingController();
@@ -21,7 +24,7 @@ class _SignInScreenState extends State<SignInScreen> {
   String _error = "";
   bool _loading = false;
 
-  Future<void> _handleLogin() async {
+ Future<void> _handleLogin() async {
     setState(() {
       _error = "";
       _loading = true;
@@ -55,14 +58,24 @@ class _SignInScreenState extends State<SignInScreen> {
         return;
       }
 
-      // TODO: Save token, user info locally
-      // e.g., SharedPreferences or secure storage
+      final token = data['token'];
+      if (token == null || token.isEmpty) {
+        throw Exception("Token missing from response");
+      }
 
-      // Navigate based on role or default
+      // ✅ USE SERVICE (NOT DIRECT STORAGE)
+      await StorageService.saveToken(token);
+
+      await StorageService.saveUserData(
+        fullName: data['user'] ?? '',
+        doctorType: data['doctorType'] ?? '',
+        fingerprintEnabled: true,
+      );
+
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } catch (e) {
       setState(() {
-        _error = "An error occurred. Please try again.";
+        _error = e.toString();
         _loading = false;
       });
     }

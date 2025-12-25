@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:malak/components/signin_with_google.dart';
 import '../routes/app_routes.dart';
 import '../config/api_config.dart';
@@ -57,6 +58,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() {
       _error = "";
     });
+    final storage = FlutterSecureStorage();
 
     // Basic validation
     if (_firstNameController.text.trim().isEmpty ||
@@ -141,15 +143,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _loading = false;
       });
 
-      // TODO: Save token if needed
-      // if (data['token'] != null) {
-      //   await storage.write(key: 'token', value: data['token']);
-      // }
+      if (data['token'] != null) {
+        await storage.write(key: 'auth_token', value: data['token']);
+      }
 
       // Auto redirect after 7 seconds
       Future.delayed(const Duration(seconds: 7), () {
         if (mounted) {
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          Navigator.pushReplacementNamed(context, AppRoutes.otpScreen);
         }
       });
     } catch (e) {
@@ -236,7 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         onPressed: () {
                           Navigator.pushReplacementNamed(
                             context,
-                            AppRoutes.home,
+                            AppRoutes.otpScreen,
                           );
                         },
                         style: ElevatedButton.styleFrom(
