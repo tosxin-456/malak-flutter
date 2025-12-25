@@ -300,7 +300,7 @@ class _AppointmentCalendarState extends State<AppointmentCalendar>
                     DateFormat('MMMM yyyy').format(_currentDate),
                     style: const TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: Colors.black87,
                     ),
                     maxLines: 1,
@@ -363,7 +363,7 @@ class _AppointmentCalendarState extends State<AppointmentCalendar>
                       ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index],
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                         color: Colors.grey.shade600,
                       ),
                     ),
@@ -416,7 +416,7 @@ class _AppointmentCalendarState extends State<AppointmentCalendar>
                           '$day',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w700,
                             color: isTodayDate
                                 ? Colors.white
                                 : isSelected
@@ -567,7 +567,7 @@ class _AppointmentCalendarState extends State<AppointmentCalendar>
                     _selectedDate != null ? 'Appointments' : 'Upcoming',
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: Colors.black87,
                     ),
                     maxLines: 1,
@@ -659,7 +659,7 @@ class _AppointmentCalendarState extends State<AppointmentCalendar>
                                   'Dr. ${apt.doctor?.fullName ?? "Unknown"}',
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                     color: Colors.black87,
                                   ),
                                   maxLines: 1,
@@ -686,7 +686,7 @@ class _AppointmentCalendarState extends State<AppointmentCalendar>
                                   _getDisplayStatus(apt),
                                   style: TextStyle(
                                     fontSize: 10,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w700,
                                     color: _getStatusTextColor(
                                       apt.status,
                                       isPast,

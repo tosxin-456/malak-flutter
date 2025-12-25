@@ -118,7 +118,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             'Malak',
                             style: TextStyle(
                               fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                               color: Color(0xFF1F2937), // text-gray-800
                             ),
                           ),
@@ -131,7 +131,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         'Sign in to your account',
                         style: TextStyle(
                           fontSize: 24,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w800,
                           color: Color(0xFF111827), // text-gray-900
                         ),
                       ),
@@ -202,7 +202,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               'Email address',
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w700,
                                 color: Color(0xFF374151), // text-gray-700
                               ),
                             ),
@@ -258,7 +258,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               'Password',
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w700,
                                 color: Color(0xFF374151), // text-gray-700
                               ),
                             ),

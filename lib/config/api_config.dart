@@ -1,5 +1,7 @@
 // Set this to true when running locally (debug mode)
 const bool isLocalhost = bool.fromEnvironment('dart.vm.product') == false;
+// const bool isLocalhost = false;
+
 
 // AUTO SWITCH
 const String API_BASE_URL = isLocalhost

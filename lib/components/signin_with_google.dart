@@ -258,7 +258,7 @@ class _SignInWithGoogleState extends State<SignInWithGoogle> {
                       'Signing in...',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -272,7 +272,7 @@ class _SignInWithGoogleState extends State<SignInWithGoogle> {
                       'Sign in with Google',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -434,7 +434,7 @@ class _SignInWithGoogleEnhancedState extends State<SignInWithGoogleEnhanced> {
                     ),
                     const SizedBox(width: 12),
                     const Text('Signing in...',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                   ],
                 )
               : Row(
@@ -443,7 +443,7 @@ class _SignInWithGoogleEnhancedState extends State<SignInWithGoogleEnhanced> {
                     GoogleIcon(),
                     SizedBox(width: 12),
                     Text('Sign in with Google',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                   ],
                 ),
         ),

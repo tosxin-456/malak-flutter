@@ -270,7 +270,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                       'Verify Your Email',
                       style: TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                         color: Color(0xFF1F2937),
                       ),
                     ),
@@ -302,7 +302,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                               enabled: !_isLoading,
                               style: const TextStyle(
                                 fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w900,
                               ),
                               decoration: InputDecoration(
                                 counterText: '',
@@ -376,7 +376,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                       _formatTime(_timeLeft),
                       style: TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         color: _timeLeft <= 60
                             ? const Color(0xFFDC2626)
                             : const Color(0xFF2563EB),
@@ -427,7 +427,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                                 'Verify Code',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w700,
                                   color: Colors.white,
                                 ),
                               ),
@@ -455,7 +455,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                               'Resend Code',
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                     ),
@@ -473,7 +473,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                         'Malak',
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w900,
                           color: Color(0xFF2563EB),
                         ),
                       ),
@@ -539,7 +539,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                           'Verification Successful!',
                           style: TextStyle(
                             fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w900,
                             color: Color(0xFF1F2937),
                           ),
                           textAlign: TextAlign.center,
@@ -574,7 +574,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                               'Continue to Dashboard',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
                             ),

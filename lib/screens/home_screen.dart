@@ -132,42 +132,39 @@ class _DashboardPageState extends State<HomeScreen>
   int get availableDoctorsCount =>
       doctors.where((doc) => doc['available'] == true).length;
 
-  @override
+ @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: Stack(
-        children: [
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeController,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildWelcomeBanner(_fullName),
-                    const SizedBox(height: 24),
-                    _buildStatsCards(),
-                    const SizedBox(height: 24),
-                    _buildAvailableDoctors(),
-                    const SizedBox(height: 24),
-                    SizedBox(height: 800, child: AppointmentCalendar()),
-                    const SizedBox(height: 24),
-                    _buildHealthTips(),
-                    const SizedBox(height: 100),
-                  ],
-                ),
+    return Stack(
+      children: [
+        SafeArea(
+          child: FadeTransition(
+            opacity: _fadeController,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildWelcomeBanner(_fullName),
+                  const SizedBox(height: 24),
+                  _buildStatsCards(),
+                  const SizedBox(height: 24),
+                  _buildAvailableDoctors(),
+                  const SizedBox(height: 24),
+                  SizedBox(height: 800, child: AppointmentCalendar()),
+                  const SizedBox(height: 24),
+                  _buildHealthTips(),
+                  const SizedBox(height: 100),
+                ],
               ),
             ),
           ),
-          Positioned(
-            bottom: 24,
-            right: 24,
-            child: _buildFloatingAppointmentButton(),
-          ),
-        ],
-      ),
+        ),
+        Positioned(
+          bottom: 24,
+          right: 24,
+          child: _buildFloatingAppointmentButton(),
+        ),
+      ],
     );
   }
 
@@ -224,7 +221,7 @@ class _DashboardPageState extends State<HomeScreen>
                   style: TextStyle(
                     color: Colors.blue[100],
                     fontSize: 14,
-                    fontWeight: FontWeight.w300,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -233,7 +230,7 @@ class _DashboardPageState extends State<HomeScreen>
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -245,7 +242,9 @@ class _DashboardPageState extends State<HomeScreen>
                 const SizedBox(height: 16),
                 const Text(
                   'Your health is our priority. Have you scheduled your next check-up?',
-                  style: TextStyle(color: Color(0xFFDBEAFE), fontSize: 16),
+                  style: TextStyle(color: Color(0xFFDBEAFE), fontSize: 16, fontWeight: FontWeight.w700,
+                  ),
+                  
                 ),
               ],
             ),
@@ -333,7 +332,7 @@ class _DashboardPageState extends State<HomeScreen>
                         value,
                         style: const TextStyle(
                           fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w900,
                           color: Color(0xFF1F2937),
                         ),
                       ),
@@ -342,7 +341,7 @@ class _DashboardPageState extends State<HomeScreen>
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF6B7280),
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
@@ -350,7 +349,7 @@ class _DashboardPageState extends State<HomeScreen>
                         style: const TextStyle(
                           fontSize: 10,
                           color: Color(0xFF2563EB),
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -368,7 +367,7 @@ class _DashboardPageState extends State<HomeScreen>
                   style: const TextStyle(
                     color: Color(0xFF2563EB),
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -401,7 +400,7 @@ class _DashboardPageState extends State<HomeScreen>
               'Available Doctors',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w800,
                 color: Color(0xFF1F2937),
               ),
             ),
@@ -522,7 +521,7 @@ class _DashboardPageState extends State<HomeScreen>
                           'Dr. ${doctor['name']}',
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             color: Color(0xFF1F2937),
                           ),
                           maxLines: 1,
@@ -619,7 +618,7 @@ class _DashboardPageState extends State<HomeScreen>
                           'Book',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -682,7 +681,7 @@ class _DashboardPageState extends State<HomeScreen>
             'Health Tips',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -709,7 +708,7 @@ class _DashboardPageState extends State<HomeScreen>
                     tip['title'] ?? '',
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: Color(0xFF2563EB),
                     ),
                   ),
@@ -761,7 +760,7 @@ class _DashboardPageState extends State<HomeScreen>
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -775,7 +774,7 @@ class _DashboardPageState extends State<HomeScreen>
           style: TextStyle(
             fontSize: 10,
             color: Color(0xFF6B7280),
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],

@@ -43,6 +43,8 @@ class StorageService {
     final fullName = prefs.getString('fullName') ?? '';
     return capitalizeWords(fullName);
   }
+
+  
 }
 
 // Example capitalizeWords function

@@ -209,7 +209,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       'Welcome, ${_firstNameController.text}!',
                       style: const TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                         color: Color(0xFF111827),
                       ),
                       textAlign: TextAlign.center,
@@ -252,7 +252,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           'Go to OTP Page',
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -296,7 +296,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         'Malak',
                         style: TextStyle(
                           fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w900,
                           color: Color(0xFF1F2937),
                         ),
                       ),
@@ -307,7 +307,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     'Create your account',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
                     ),
                   ),
@@ -426,7 +426,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   'Date of Birth',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w700,
                                     color: Color(0xFF374151),
                                   ),
                                 ),
@@ -492,7 +492,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   'Gender',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w700,
                                     color: Color(0xFF374151),
                                   ),
                                 ),
@@ -704,7 +704,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     'Create Account',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                           ),
@@ -771,7 +771,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Color(0xFF2563EB),
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                     decoration: TextDecoration.underline,
                                   ),
                                 ),
@@ -807,7 +807,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               label,
               style: const TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
                 color: Color(0xFF374151),
               ),
             ),
@@ -867,7 +867,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               label,
               style: const TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
                 color: Color(0xFF374151),
               ),
             ),

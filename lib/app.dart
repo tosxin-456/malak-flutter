@@ -16,9 +16,9 @@ class MalakApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         // Set a heavier default font weight
        textTheme: const TextTheme(
-          bodyLarge: TextStyle(fontWeight: FontWeight.w600), // Semibold
-          bodyMedium: TextStyle(fontWeight: FontWeight.w600), // Semibold
-          bodySmall: TextStyle(fontWeight: FontWeight.w600), // Semibold
+          bodyLarge: TextStyle(fontWeight: FontWeight.w700), // Semibold
+          bodyMedium: TextStyle(fontWeight: FontWeight.w700), // Semibold
+          bodySmall: TextStyle(fontWeight: FontWeight.w700), // Semibold
           titleLarge: TextStyle(fontWeight: FontWeight.w800), // Extra bold
           titleMedium: TextStyle(fontWeight: FontWeight.w700), // Bold
           titleSmall: TextStyle(fontWeight: FontWeight.w700), // Bold
@@ -30,14 +30,14 @@ class MalakApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             textStyle: const TextStyle(
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               fontSize: 16,
             ),
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            textStyle: const TextStyle(fontWeight: FontWeight.w600),
+            textStyle: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
       ),
