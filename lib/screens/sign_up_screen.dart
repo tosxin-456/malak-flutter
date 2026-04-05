@@ -144,7 +144,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
 
       if (data['token'] != null) {
-        await storage.write(key: 'auth_token', value: data['token']);
+        await storage.write(key: 'token', value: data['token']);
       }
 
       // Auto redirect after 7 seconds

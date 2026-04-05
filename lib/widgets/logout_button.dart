@@ -7,7 +7,7 @@ class LogoutButton extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     // Clear secure storage (tokens)
-    await StorageService.clearSecure();
+   await StorageService.clearToken();
 
     // Clear shared preferences (non-sensitive user data)
     await StorageService.clearPrefs();

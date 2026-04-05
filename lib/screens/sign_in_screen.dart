@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:malak/components/fingerprint_login.dart';
 import 'package:malak/components/signin_with_google.dart';
 import 'package:malak/services/storage_service.dart';
@@ -14,7 +15,8 @@ class SignInScreen extends StatefulWidget {
   @override
   State<SignInScreen> createState() => _SignInScreenState();
 }
-  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+
+final FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
 class _SignInScreenState extends State<SignInScreen> {
   final _emailController = TextEditingController();
@@ -24,7 +26,7 @@ class _SignInScreenState extends State<SignInScreen> {
   String _error = "";
   bool _loading = false;
 
- Future<void> _handleLogin() async {
+  Future<void> _handleLogin() async {
     setState(() {
       _error = "";
       _loading = true;
@@ -63,7 +65,8 @@ class _SignInScreenState extends State<SignInScreen> {
         throw Exception("Token missing from response");
       }
 
-      // ✅ USE SERVICE (NOT DIRECT STORAGE)
+      final decoded = JwtDecoder.decode(token);
+
       await StorageService.saveToken(token);
 
       await StorageService.saveUserData(
@@ -71,6 +74,12 @@ class _SignInScreenState extends State<SignInScreen> {
         doctorType: data['doctorType'] ?? '',
         fingerprintEnabled: true,
       );
+
+      // ✅ FIXED HERE
+      if (decoded['role'] != "patient") {
+        Navigator.pushReplacementNamed(context, AppRoutes.loginType);
+        return;
+      }
 
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } catch (e) {

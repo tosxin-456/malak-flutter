@@ -27,7 +27,7 @@ class _NavigationLayoutState extends State<NavigationLayout> {
 
   // Bottom navigation items
   final List<NavItem> _navItems = [
-    NavItem(name: 'Dashboard', icon: Icons.home_rounded, route: '/dashboard'),
+    NavItem(name: 'Dashboard', icon: Icons.home_rounded, route: '/home'),
     NavItem(
       name: 'Appointments',
       icon: Icons.calendar_today_rounded,
@@ -217,7 +217,7 @@ class _NavigationLayoutState extends State<NavigationLayout> {
                   child: GestureDetector(
                     onTap: () {
                       setState(() => _selectedIndex = index);
-                      Navigator.pushReplacementNamed(context, item.route);
+                      Navigator.pushNamed(context, item.route);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),

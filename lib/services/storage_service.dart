@@ -1,23 +1,24 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageService {
   StorageService._(); // private constructor
 
-  static const _secure = FlutterSecureStorage();
-
-  // 🔐 Tokens
+  // 🔐 Tokens using SharedPreferences
   static Future<void> saveToken(String token) async {
-    await _secure.write(key: 'token', value: token);
-    await _secure.write(key: 'remember_token', value: token);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+    await prefs.setString('remember_token', token);
   }
 
   static Future<String?> getToken() async {
-    return _secure.read(key: 'token');
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
   }
 
-  static Future<void> clearSecure() async {
-    await _secure.deleteAll();
+  static Future<void> clearToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('remember_token');
   }
 
   // 📦 Non-sensitive
@@ -43,8 +44,6 @@ class StorageService {
     final fullName = prefs.getString('fullName') ?? '';
     return capitalizeWords(fullName);
   }
-
-  
 }
 
 // Example capitalizeWords function

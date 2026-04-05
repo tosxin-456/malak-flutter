@@ -38,6 +38,20 @@ dependencies:
   jwt_decode: ^0.3.1
   intl: ^0.18.1
   image_picker: ^1.1.2
+  google_fonts: ^7.0.0
+  google_sign_in: ^6.2.1
+  jwt_decoder: ^2.0.1
+  socket_io_client: ^2.0.3+1   # replaces socket.io
+  record: ^6.2.0
+  record_linux: ^1.2.1               # microphone recording
+  audioplayers: ^5.2.1          # voice note playback (hook into _togglePlayVoiceNote)
+  file_picker: ^8.0.0           # document & audio file picking
+  path_provider: ^2.1.2         # temp directory for recordings
+  url_launcher: ^6.2.5 
+  provider: ^6.1.2
+  agora_rtc_engine: ^6.3.2
+  paystack_for_flutter: ^1.0.4
+
 
 dev_dependencies:
   flutter_test:
@@ -58,11 +72,19 @@ flutter:
   uses-material-design: true
 
   fonts:
-    - family: Montserrat
-      fonts:
-        - asset: assets/fonts/Montserrat-VariableFont_wght.ttf
-        - asset: assets/fonts/Montserrat-Italic-VariableFont_wght.ttf
-          style: italic
+   - family: Montserrat
+     fonts:
+       - asset: assets/fonts/Montserrat-VariableFont_wght.ttf
+         weight: 100
+       - asset: assets/fonts/Montserrat-VariableFont_wght.ttf
+         weight: 400
+       - asset: assets/fonts/Montserrat-VariableFont_wght.ttf
+         weight: 700
+       - asset: assets/fonts/Montserrat-VariableFont_wght.ttf
+         weight: 900
+       - asset: assets/fonts/Montserrat-Italic-VariableFont_wght.ttf
+         style: italic
+
 
 
 

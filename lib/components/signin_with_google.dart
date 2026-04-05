@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
 import '../routes/app_routes.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 // Google Icon Widget
 class GoogleIcon extends StatelessWidget {
@@ -110,6 +113,12 @@ class _SignInWithGoogleState extends State<SignInWithGoogle> {
     setState(() => _error = "");
   }
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    clientId:
+        "569787261643-4um4s5h4a81km5od7ju1hacplki0372h.apps.googleusercontent.com", // web client ID
+  );
+
   Future<void> _handleGoogleSignIn() async {
     setState(() {
       _error = "";
@@ -117,26 +126,30 @@ class _SignInWithGoogleState extends State<SignInWithGoogle> {
     });
 
     try {
-      // TODO: Implement actual Google Sign-In
-      // Add to pubspec.yaml: google_sign_in: ^6.1.0
+      // 🔹 Sign in with Google
+      final GoogleSignInAccount? account = await _googleSignIn.signIn();
 
-      // For now, simulate the flow
-      await Future.delayed(const Duration(seconds: 2));
+      if (account == null) {
+        throw Exception(
+          "Google login was cancelled or failed. Please try again.",
+        );
+      }
 
-      // This is where you'd get the access token from Google Sign-In
-      // final googleSignIn = GoogleSignIn(scopes: ['email']);
-      // final account = await googleSignIn.signIn();
-      // final authentication = await account?.authentication;
-      // final accessToken = authentication?.accessToken;
+      // 🔹 Get tokens
+      final GoogleSignInAuthentication authentication =
+          await account.authentication;
 
-      // Mock access token for demonstration
-      const mockAccessToken = "mock_token";
+      final accessToken = authentication.accessToken;
 
-      // Send to backend
+      if (accessToken == null) {
+        throw Exception("Failed to get access token from Google.");
+      }
+
+      // 🔹 Send token to backend
       final res = await http.post(
         Uri.parse('$API_BASE_URL/users/google-auth'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"access_token": mockAccessToken}),
+        body: jsonEncode({"access_token": accessToken}),
       );
 
       if (res.statusCode != 200) {
@@ -148,32 +161,53 @@ class _SignInWithGoogleState extends State<SignInWithGoogle> {
 
       final data = jsonDecode(res.body);
 
-      // TODO: Save token and user data using SharedPreferences
-      // final prefs = await SharedPreferences.getInstance();
-      // await prefs.setString('token', data['token']);
-      // await prefs.setString('fullName', data['user'] ?? '');
-      // await prefs.setString('doctorType', data['doctorType'] ?? '');
+      final prefs = await SharedPreferences.getInstance();
 
-      // Apply Remember Me logic
+      // 🔹 Save main token
+      await prefs.setString('token', data['token']);
+      await prefs.setString('fullName', data['user'] ?? '');
+      await prefs.setString('doctorType', data['doctorType'] ?? '');
+
+      // 🔹 Remember Me logic
       if (widget.rememberMe) {
-        // await prefs.setString('remember_token', data['token']);
-        // await prefs.setBool('fingerprint_enabled', true);
+        await prefs.setString('remember_token', data['token']);
+        await prefs.setBool('fingerprint_enabled', true);
       } else {
-        // await prefs.remove('remember_token');
-        // await prefs.remove('fingerprint_enabled');
+        await prefs.remove('remember_token');
+        await prefs.remove('fingerprint_enabled');
       }
 
-      // Navigate based on role
-      if (mounted) {
+      // 🔹 Decode JWT (like your React version)
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(data['token']);
+
+      final role = decodedToken['role'];
+
+      if (!mounted) return;
+
+      // 🔹 Role check
+      if (role != "patient") {
+        Navigator.pushReplacementNamed(context, AppRoutes.loginType);
+        return;
+      }
+
+      final hasCartBeforeLogin = prefs.getString("cart_before_login");
+
+      if (hasCartBeforeLogin != null) {
+        // Navigator.pushReplacementNamed(context, AppRoutes.marketPlace);
+      } else {
+        await Future.delayed(const Duration(seconds: 1));
         Navigator.pushReplacementNamed(context, AppRoutes.home);
       }
     } catch (error) {
       debugPrint("❌ Google Sign-In error: $error");
+
       setState(() {
         _error =
             error.toString().replaceAll('Exception: ', '') ??
             "Sign-in failed. Please try again.";
       });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showErrorToast());
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -282,173 +316,3 @@ class _SignInWithGoogleState extends State<SignInWithGoogle> {
     );
   }
 }
-
-// Enhanced version with actual Google Sign-In implementation
-// Add to pubspec.yaml:
-// google_sign_in: ^6.1.0
-// shared_preferences: ^2.2.0
-
-/*
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-class SignInWithGoogleEnhanced extends StatefulWidget {
-  final bool rememberMe;
-
-  const SignInWithGoogleEnhanced({
-    super.key,
-    this.rememberMe = false,
-  });
-
-  @override
-  State<SignInWithGoogleEnhanced> createState() => 
-      _SignInWithGoogleEnhancedState();
-}
-
-class _SignInWithGoogleEnhancedState extends State<SignInWithGoogleEnhanced> {
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-  );
-  
-  String _error = "";
-  bool _isLoading = false;
-
-  Future<void> _handleGoogleSignIn() async {
-    setState(() {
-      _error = "";
-      _isLoading = true;
-    });
-
-    try {
-      // Sign in with Google
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
-      
-      if (account == null) {
-        throw Exception("Google login was cancelled or failed. Please try again.");
-      }
-
-      // Get authentication tokens
-      final GoogleSignInAuthentication authentication = 
-          await account.authentication;
-      
-      final accessToken = authentication.accessToken;
-      
-      if (accessToken == null) {
-        throw Exception("Failed to get access token from Google.");
-      }
-
-      // Send to backend
-      final res = await http.post(
-        Uri.parse('$API_BASE_URL/users/google-auth'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"access_token": accessToken}),
-      );
-
-      if (res.statusCode != 200) {
-        final errorData = jsonDecode(res.body);
-        throw Exception(
-          errorData['message'] ?? 'Server error: ${res.statusCode}'
-        );
-      }
-
-      final data = jsonDecode(res.body);
-      
-      // Save token and user data
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token']);
-      await prefs.setString('fullName', data['user'] ?? '');
-      await prefs.setString('doctorType', data['doctorType'] ?? '');
-      
-      // Apply Remember Me logic
-      if (widget.rememberMe) {
-        await prefs.setString('remember_token', data['token']);
-        await prefs.setBool('fingerprint_enabled', true);
-      } else {
-        await prefs.remove('remember_token');
-        await prefs.remove('fingerprint_enabled');
-      }
-
-      // Decode token to check role (you'll need jwt_decoder package)
-      // final decodedToken = JwtDecoder.decode(data['token']);
-      // final userRole = decodedToken['role'];
-      
-      // Navigate based on role
-      if (mounted) {
-        // if (userRole != 'patient') {
-        //   Navigator.pushReplacementNamed(context, AppRoutes.loginType);
-        // } else {
-        //   final hasCart = prefs.getString('cart_before_login') != null;
-        //   Navigator.pushReplacementNamed(
-        //     context,
-        //     hasCart ? AppRoutes.marketplace : AppRoutes.dashboard,
-        //   );
-        // }
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
-      }
-      
-    } catch (error) {
-      debugPrint("❌ Google Sign-In error: $error");
-      setState(() {
-        _error = error.toString().replaceAll('Exception: ', '');
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Same UI as the basic version
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(maxWidth: 448),
-      padding: const EdgeInsets.all(24),
-      child: SizedBox(
-        width: double.infinity,
-        height: 48,
-        child: OutlinedButton(
-          onPressed: _isLoading ? null : _handleGoogleSignIn,
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            side: const BorderSide(color: Color(0xFF3B82F6), width: 2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            foregroundColor: const Color(0xFF2563EB),
-          ),
-          child: _isLoading
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF2563EB),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text('Signing in...',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    GoogleIcon(),
-                    SizedBox(width: 12),
-                    Text('Sign in with Google',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
-}
-*/
