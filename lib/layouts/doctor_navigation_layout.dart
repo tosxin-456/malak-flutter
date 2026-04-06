@@ -1,46 +1,52 @@
-// lib/layouts/navigation_layout.dart
+// lib/layouts/doctor_navigation_layout.dart
 import 'package:flutter/material.dart';
-import 'package:jwt_decode/jwt_decode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:malak/config/api_config.dart';
 
-class NavigationLayout extends StatefulWidget {
+class DoctorNavigationLayout extends StatefulWidget {
   final Widget child;
   final String currentRoute;
 
-  const NavigationLayout({
+  const DoctorNavigationLayout({
     Key? key,
     required this.child,
     required this.currentRoute,
   }) : super(key: key);
 
   @override
-  State<NavigationLayout> createState() => _NavigationLayoutState();
+  State<DoctorNavigationLayout> createState() => _DoctorNavigationLayoutState();
 }
 
-class _NavigationLayoutState extends State<NavigationLayout> {
+class _DoctorNavigationLayoutState extends State<DoctorNavigationLayout> {
   int _selectedIndex = 0;
   int _unreadCount = 0;
-  bool _isDoctorMode = false;
+  bool _isDoctorMode = true;
   String? _userRole;
 
-  static const _blue = Color(0xFF2563EB);
+  static const _green = Color(0xFF059669);
+  static const _greenLight = Color(0xFFECFDF5);
 
-  // ── 4 bottom nav items (Wallet moved to AppBar) ───────────────────────────
-  final List<NavItem> _navItems = [
-    NavItem(name: 'Dashboard', icon: Icons.home_rounded, route: '/home'),
-    NavItem(
-      name: 'Appointments',
-      icon: Icons.calendar_today_rounded,
-      route: '/appointments',
+  // ── 4 bottom nav items (Wallet lives in AppBar) ───────────────────────────
+  final List<_NavItem> _navItems = [
+    _NavItem(
+      name: 'Home',
+      icon: Icons.home_rounded,
+      route: '/doctor-dashboard',
     ),
-    NavItem(
+    _NavItem(
+      name: 'Patients',
+      icon: Icons.people_outline,
+      route: '/my-patients',
+    ),
+    _NavItem(
       name: 'Messages',
       icon: Icons.chat_bubble_rounded,
       route: '/messages',
+      hasBadge: true,
     ),
-    NavItem(name: 'Profile', icon: Icons.person_rounded, route: '/profile'),
+    _NavItem(name: 'Profile', icon: Icons.person_rounded, route: '/profile'),
   ];
 
   @override
@@ -65,13 +71,18 @@ class _NavigationLayoutState extends State<NavigationLayout> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    if (token != null) {
-      try {
-        final decoded = Jwt.parseJwt(token);
-        setState(() => _userRole = decoded['role']);
-      } catch (e) {
-        debugPrint('Error decoding token: $e');
+    if (token == null) return;
+    try {
+      final parts = token.split('.');
+      if (parts.length == 3) {
+        final payload = utf8.decode(
+          base64Url.decode(base64Url.normalize(parts[1])),
+        );
+        final data = json.decode(payload) as Map<String, dynamic>;
+        setState(() => _userRole = data['role'] as String?);
       }
+    } catch (e) {
+      debugPrint('Token decode error: $e');
     }
   }
 
@@ -79,29 +90,30 @@ class _NavigationLayoutState extends State<NavigationLayout> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     if (token == null) return;
-
     try {
-      final response = await http.get(
-        Uri.parse('YOUR_API_BASE_URL/notifications'),
+      final res = await http.get(
+        Uri.parse('$API_BASE_URL/notifications'),
         headers: {'Authorization': 'Bearer $token'},
       );
-      if (response.statusCode == 200) {
-        final List notifications = json.decode(response.body);
-        final unread = notifications
-            .where((n) => !n['isRead'] && !n['deleted'])
+      if (!mounted) return;
+      if (res.statusCode == 200) {
+        final List data = json.decode(res.body);
+        final unread = data
+            .where((n) => n['isRead'] == false && n['deleted'] != true)
             .length;
         setState(() => _unreadCount = unread);
       }
     } catch (e) {
-      debugPrint('Error fetching notifications: $e');
+      debugPrint('Notifications error: $e');
     }
   }
 
   void _handleDashboardSwitch() {
+    final goingToPatient = _isDoctorMode;
     setState(() => _isDoctorMode = !_isDoctorMode);
     Navigator.pushNamedAndRemoveUntil(
       context,
-      _isDoctorMode ? '/doctor-dashboard' : '/home',
+      goingToPatient ? '/home' : '/doctor-dashboard',
       (r) => false,
     );
   }
@@ -116,7 +128,7 @@ class _NavigationLayoutState extends State<NavigationLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: _buildAppBar(),
       body: widget.child,
       bottomNavigationBar: _buildBottomNav(),
@@ -128,6 +140,8 @@ class _NavigationLayoutState extends State<NavigationLayout> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
+      scrolledUnderElevation: 1,
+      shadowColor: const Color(0x14000000),
       backgroundColor: Colors.white,
       toolbarHeight: 64,
       automaticallyImplyLeading: false,
@@ -136,16 +150,46 @@ class _NavigationLayoutState extends State<NavigationLayout> {
           // Profile avatar
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/profile'),
-            child: CircleAvatar(
-              radius: 19,
-              backgroundColor: _blue.withOpacity(0.10),
-              child: const Icon(Icons.person_rounded, color: _blue, size: 22),
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: _greenLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.person_outline, color: _green, size: 20),
             ),
           ),
+          const SizedBox(width: 10),
+          // Logo
+          // Row(
+          //   mainAxisSize: MainAxisSize.min,
+          //   children: [
+          //     Container(
+          //       width: 26,
+          //       height: 26,
+          //       decoration: BoxDecoration(
+          //         color: _greenLight,
+          //         borderRadius: BorderRadius.circular(6),
+          //       ),
+          //       child: const Icon(Icons.favorite, color: _green, size: 14),
+          //     ),
+          //     const SizedBox(width: 6),
+          //     const Text(
+          //       'Malak',
+          //       style: TextStyle(
+          //         fontSize: 18,
+          //         fontWeight: FontWeight.w800,
+          //         color: Color(0xFF111827),
+          //         letterSpacing: -0.4,
+          //       ),
+          //     ),
+          //   ],
+          // ),
         ],
       ),
       actions: [
-        // ── Doctor/Patient toggle (non-patient roles only) ────────────────
+        // ── Doctor/Patient toggle ─────────────────────────────────────────
         if (_userRole != 'patient')
           IconButton(
             padding: EdgeInsets.zero,
@@ -156,7 +200,7 @@ class _NavigationLayoutState extends State<NavigationLayout> {
                   : Icons.toggle_off_rounded,
               color: _isDoctorMode
                   ? const Color.fromARGB(255, 15, 126, 15)
-                  : _blue,
+                  : const Color(0xFF9CA3AF),
               size: 36,
             ),
           ),
@@ -177,24 +221,24 @@ class _NavigationLayoutState extends State<NavigationLayout> {
             IconButton(
               icon: const Icon(
                 Icons.notifications_rounded,
-                color: _blue,
+                color: const Color.fromARGB(255, 15, 126, 15),
                 size: 26,
               ),
               onPressed: () => Navigator.pushNamed(context, '/notifications'),
             ),
             if (_unreadCount > 0)
               Positioned(
-                right: 10,
-                top: 10,
+                right: 8,
+                top: 8,
                 child: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(3),
                   decoration: const BoxDecoration(
-                    color: Color(0xFFFF5252),
+                    color: Color(0xFFEF4444),
                     shape: BoxShape.circle,
                   ),
                   constraints: const BoxConstraints(
-                    minWidth: 17,
-                    minHeight: 17,
+                    minWidth: 16,
+                    minHeight: 16,
                   ),
                   child: Text(
                     _unreadCount > 9 ? '9+' : '$_unreadCount',
@@ -223,8 +267,8 @@ class _NavigationLayoutState extends State<NavigationLayout> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, -2),
           ),
         ],
@@ -242,34 +286,61 @@ class _NavigationLayoutState extends State<NavigationLayout> {
               return Expanded(
                 child: GestureDetector(
                   onTap: () => _onNavTap(index),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFF1E88E5).withOpacity(0.10)
+                          ? _green.withOpacity(0.10)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          item.icon,
-                          color: isSelected
-                              ? const Color(0xFF1E88E5)
-                              : Colors.grey.shade600,
-                          size: 24,
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Icon(
+                              item.icon,
+                              color: isSelected ? _green : Colors.grey.shade500,
+                              size: 24,
+                            ),
+                            if (item.hasBadge && _unreadCount > 0)
+                              Positioned(
+                                top: -4,
+                                right: -6,
+                                child: Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFEF4444),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 15,
+                                    minHeight: 15,
+                                  ),
+                                  child: Text(
+                                    _unreadCount > 9 ? '9+' : '$_unreadCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           item.name,
                           style: TextStyle(
-                            color: isSelected
-                                ? const Color(0xFF1E88E5)
-                                : Colors.grey.shade600,
+                            color: isSelected ? _green : Colors.grey.shade500,
                             fontSize: 11,
                             fontWeight: isSelected
-                                ? FontWeight.w600
+                                ? FontWeight.w700
                                 : FontWeight.w500,
                           ),
                         ),
@@ -286,10 +357,18 @@ class _NavigationLayoutState extends State<NavigationLayout> {
   }
 }
 
-class NavItem {
+// ─── Nav Item Model ───────────────────────────────────────────────────────────
+
+class _NavItem {
   final String name;
   final IconData icon;
   final String route;
+  final bool hasBadge;
 
-  NavItem({required this.name, required this.icon, required this.route});
+  const _NavItem({
+    required this.name,
+    required this.icon,
+    required this.route,
+    this.hasBadge = false,
+  });
 }
