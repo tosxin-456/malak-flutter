@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:malak/config/api_config.dart';
 import 'package:malak/services/storage_service.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:malak/context/socket_provider.dart'; // <-- your new file
 
 // ─── Model ────────────────────────────────────────────────────────────────────
 
@@ -37,7 +37,6 @@ class DoctorApt {
     final dt =
         DateTime.tryParse(json['appointmentDateTime'] as String? ?? '') ??
         DateTime.now();
-
     final hour = dt.hour;
     final minute = dt.minute.toString().padLeft(2, '0');
     final ampm = hour >= 12 ? 'PM' : 'AM';
@@ -63,12 +62,9 @@ class DoctorApt {
 
 // ─── Widget ───────────────────────────────────────────────────────────────────
 
+/// No longer needs socket/userId props — reads them from [SocketProvider].
 class DoctorAppointments extends StatefulWidget {
-  final IO.Socket? socket;
-  final String? userId;
-
-  const DoctorAppointments({Key? key, this.socket, this.userId})
-    : super(key: key);
+  const DoctorAppointments({Key? key}) : super(key: key);
 
   @override
   State<DoctorAppointments> createState() => _DoctorAppointmentsState();
@@ -88,11 +84,21 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
   String? _currentPatientId;
   Timer? _waitingTimeout;
 
+  // cached reference so we can unbind safely
+  late SocketNotifier _socketNotifier;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Grab notifier once; safe to call in didChangeDependencies.
+    _socketNotifier = SocketProvider.of(context);
+    _bindSocketEvents();
+  }
+
   @override
   void initState() {
     super.initState();
     _loadAppointments();
-    _bindSocketEvents();
   }
 
   @override
@@ -102,16 +108,16 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
     super.dispose();
   }
 
-  // ── Socket ────────────────────────────────────────────────────────────────
+  // ── Socket events ─────────────────────────────────────────────────────────
 
   void _bindSocketEvents() {
-    widget.socket?.on('consult:accepted', _onConsultAccepted);
-    widget.socket?.on('consult:cancelled', _onConsultCancelled);
+    _socketNotifier.socket?.on('consult:accepted', _onConsultAccepted);
+    _socketNotifier.socket?.on('consult:cancelled', _onConsultCancelled);
   }
 
   void _unbindSocketEvents() {
-    widget.socket?.off('consult:accepted');
-    widget.socket?.off('consult:cancelled');
+    _socketNotifier.socket?.off('consult:accepted');
+    _socketNotifier.socket?.off('consult:cancelled');
   }
 
   void _onConsultAccepted(dynamic data) {
@@ -125,6 +131,7 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
 
     final mode = _currentConsultMode;
     final cid = _currentConsultId;
+
     setState(() {
       _showWaitingModal = false;
       _currentConsultId = null;
@@ -209,14 +216,20 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
     }
   }
 
-  // ── Consultation ──────────────────────────────────────────────────────────
+  // ── Start consultation ────────────────────────────────────────────────────
 
   Future<void> _handleStartConsultation(DoctorApt apt) async {
-    final socket = widget.socket;
+    final notifier = _socketNotifier;
+    final socket = notifier.socket;
+    final userId = notifier.userId;
+
     if (socket == null) {
       setState(() => _errorMessage = 'Real-time service unavailable.');
       return;
     }
+
+    // Clear any previous error
+    setState(() => _errorMessage = null);
 
     try {
       final token = await StorageService.getToken();
@@ -224,6 +237,7 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
 
       _currentConsultMode = apt.type;
 
+      // 1️⃣ Create consultation on server
       final res = await http.post(
         Uri.parse('$API_BASE_URL/consultations/create'),
         headers: {
@@ -250,14 +264,20 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
         _selectedPatient = apt.patientName;
       });
 
+      // 2️⃣ Ensure socket is connected (short grace period)
       if (!socket.connected) {
         socket.connect();
         await Future.delayed(const Duration(seconds: 2));
       }
 
+      // Rebind events after potential reconnect
+      _unbindSocketEvents();
+      _bindSocketEvents();
+
+      // 3️⃣ Notify patient
       socket.emit('consult:incoming', {
         'to': apt.patientId,
-        'from': widget.userId,
+        'from': userId,
         'consultId': consultId,
         'appointmentMode': apt.type,
       });
@@ -266,6 +286,7 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
         'consultId': consultId,
       });
 
+      // 4️⃣ 60-second timeout — auto-cancel if patient doesn't respond
       _waitingTimeout?.cancel();
       _waitingTimeout = Timer(const Duration(seconds: 60), () {
         if (_currentConsultId == consultId && mounted) {
@@ -294,8 +315,9 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
   }
 
   void _cancelWaiting() {
-    if (_currentConsultId != null && widget.socket != null) {
-      widget.socket!.emit('consult:cancelled', {
+    final socket = _socketNotifier.socket;
+    if (_currentConsultId != null && socket != null) {
+      socket.emit('consult:cancelled', {
         'to': _currentPatientId,
         'consultId': _currentConsultId,
         'reason': 'doctor_cancel',
@@ -676,7 +698,7 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                _BouncingDots(),
+                const _BouncingDots(),
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: _cancelWaiting,
@@ -697,6 +719,8 @@ class _DoctorAppointmentsState extends State<DoctorAppointments> {
 // ─── Bouncing dots ────────────────────────────────────────────────────────────
 
 class _BouncingDots extends StatefulWidget {
+  const _BouncingDots();
+
   @override
   State<_BouncingDots> createState() => _BouncingDotsState();
 }
@@ -734,7 +758,9 @@ class _BouncingDotsState extends State<_BouncingDots>
 
   @override
   void dispose() {
-    for (final c in _controllers) c.dispose();
+    for (final c in _controllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 

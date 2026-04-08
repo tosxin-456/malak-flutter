@@ -174,8 +174,8 @@ class _DoctorDashboardState extends State<DoctorDashboard>
 
                       // ── Appointments list (makes own API call) ──────
                       DoctorAppointments(
-                        socket: widget.socket,
-                        userId: widget.userId,
+                        // socket: widget.socket,
+                        // userId: widget.userId,
                       ),
                       const SizedBox(height: 24),
 

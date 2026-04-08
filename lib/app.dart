@@ -4,8 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:malak/config/api_config.dart';
 import 'package:malak/context/call_provider.dart';
+import 'package:malak/context/socket_provider.dart'; // ← new
 import 'package:malak/services/storage_service.dart';
-import 'package:malak/widgets/global_call_ui.dart'; // ← import the new file
+import 'package:malak/widgets/global_call_ui.dart';
 import 'package:provider/provider.dart';
 import 'routes/app_routes.dart';
 
@@ -20,10 +21,19 @@ class _MalakAppState extends State<MalakApp> {
   Map<String, dynamic>? _user;
   bool _loading = true;
 
+  // Single instance — lives for the entire app lifetime
+  final SocketNotifier _socketNotifier = SocketNotifier();
+
   @override
   void initState() {
     super.initState();
     _fetchProfile();
+  }
+
+  @override
+  void dispose() {
+    _socketNotifier.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchProfile() async {
@@ -41,7 +51,14 @@ class _MalakAppState extends State<MalakApp> {
       );
 
       if (res.statusCode == 200) {
-        setState(() => _user = json.decode(res.body));
+        final user = json.decode(res.body) as Map<String, dynamic>;
+        setState(() => _user = user);
+
+        // Initialise socket as soon as we have a userId
+        final userId = user['_id']?.toString() ?? '';
+        if (userId.isNotEmpty) {
+          await _socketNotifier.init(userId);
+        }
       }
     } catch (e) {
       debugPrint('Error fetching profile: $e');
@@ -59,46 +76,47 @@ class _MalakAppState extends State<MalakApp> {
       );
     }
 
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => CallProvider(
-            userId: _user?['_id']?.toString() ?? '',
-            userInfo: _user ?? {},
+    return SocketProvider(
+      notifier: _socketNotifier,
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => CallProvider(
+              userId: _user?['_id']?.toString() ?? '',
+              userInfo: _user ?? {},
+            ),
           ),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Malak',
-        debugShowCheckedModeBanner: false,
-        initialRoute: AppRoutes.signIn,
-        routes: AppRoutes.routes,
-        onGenerateRoute: AppRoutes.onGenerateRoute,
-        theme: ThemeData(
-          textTheme: GoogleFonts.montserratTextTheme().apply(
-            bodyColor: Colors.black,
-            displayColor: Colors.black,
-          ),
-          fontFamilyFallback: const ['Montserrat'],
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              textStyle: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
+        ],
+        child: MaterialApp(
+          title: 'Malak',
+          debugShowCheckedModeBanner: false,
+          initialRoute: AppRoutes.signIn,
+          routes: AppRoutes.routes,
+          onGenerateRoute: AppRoutes.onGenerateRoute,
+          theme: ThemeData(
+            textTheme: GoogleFonts.montserratTextTheme().apply(
+              bodyColor: Colors.black,
+              displayColor: Colors.black,
+            ),
+            fontFamilyFallback: const ['Montserrat'],
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                textStyle: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                textStyle: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
           ),
-          textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(
-              textStyle: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
+          builder: (context, child) {
+            return _CallOverlayWrapper(child: child ?? const SizedBox.shrink());
+          },
         ),
-        // ── KEY: use builder to wrap every route's scaffold
-        // with the GlobalCallUI overlay ──────────────────────────────────
-        builder: (context, child) {
-          return _CallOverlayWrapper(child: child ?? const SizedBox.shrink());
-        },
       ),
     );
   }
@@ -106,10 +124,6 @@ class _MalakAppState extends State<MalakApp> {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // _CallOverlayWrapper
-//
-// Wraps the entire app in a Stack. GlobalCallUI renders on top of everything
-// — including the bottom nav, app bar, and keyboard — on all screens,
-// exactly like the React <GlobalCallUI /> rendered outside the router.
 // ─────────────────────────────────────────────────────────────────────────────
 class _CallOverlayWrapper extends StatelessWidget {
   final Widget child;
@@ -120,10 +134,7 @@ class _CallOverlayWrapper extends StatelessWidget {
     return Material(
       child: Stack(
         children: [
-          // Normal app content
           child,
-
-          // Global call UI — floats above everything
           Consumer<CallProvider>(
             builder: (context, cp, _) {
               if (cp.callMode == CallMode.idle) return const SizedBox.shrink();
