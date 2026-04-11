@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:malak/config/api_config.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -24,6 +26,7 @@ class _NavigationLayoutState extends State<NavigationLayout> {
   int _unreadCount = 0;
   bool _isDoctorMode = false;
   String? _userRole;
+  String? _profileImageUrl;
 
   static const _blue = Color(0xFF2563EB);
 
@@ -73,6 +76,19 @@ class _NavigationLayoutState extends State<NavigationLayout> {
         debugPrint('Error decoding token: $e');
       }
     }
+    // Fetch profile image
+    try {
+      final res = await http.get(
+        Uri.parse('$API_BASE_URL/users/profile'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        setState(() => _profileImageUrl = data['profile_image']);
+      }
+    } catch (e) {
+      debugPrint('Error fetching profile: $e');
+    }
   }
 
   Future<void> _fetchNotifications() async {
@@ -82,7 +98,7 @@ class _NavigationLayoutState extends State<NavigationLayout> {
 
     try {
       final response = await http.get(
-        Uri.parse('YOUR_API_BASE_URL/notifications'),
+        Uri.parse('$API_BASE_URL/notifications'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode == 200) {
@@ -134,12 +150,17 @@ class _NavigationLayoutState extends State<NavigationLayout> {
       title: Row(
         children: [
           // Profile avatar
-          GestureDetector(
+         GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/profile'),
             child: CircleAvatar(
               radius: 19,
               backgroundColor: _blue.withOpacity(0.10),
-              child: const Icon(Icons.person_rounded, color: _blue, size: 22),
+              backgroundImage: _profileImageUrl != null
+                  ? NetworkImage(_profileImageUrl!)
+                  : null,
+              child: _profileImageUrl == null
+                  ? const Icon(Icons.person_rounded, color: _blue, size: 22)
+                  : null,
             ),
           ),
         ],

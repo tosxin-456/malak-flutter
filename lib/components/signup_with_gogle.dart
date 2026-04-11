@@ -4,6 +4,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:malak/config/api_config.dart';
+
 
 class SignUpWithGoogle extends StatefulWidget {
   const SignUpWithGoogle({super.key});
@@ -41,7 +43,7 @@ class _SignUpWithGoogleState extends State<SignUpWithGoogle> {
       final accessToken = googleAuth.accessToken;
 
       final response = await http.post(
-        Uri.parse("YOUR_API_BASE_URL/users/google-auth"),
+        Uri.parse("$API_BASE_URL/users/google-auth"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"access_token": accessToken}),
       );

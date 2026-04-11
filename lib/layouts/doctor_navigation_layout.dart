@@ -24,6 +24,7 @@ class _DoctorNavigationLayoutState extends State<DoctorNavigationLayout> {
   int _unreadCount = 0;
   bool _isDoctorMode = true;
   String? _userRole;
+  String? _profileImageUrl;
 
   static const _green = Color(0xFF059669);
   static const _greenLight = Color(0xFFECFDF5);
@@ -43,7 +44,7 @@ class _DoctorNavigationLayoutState extends State<DoctorNavigationLayout> {
     _NavItem(
       name: 'Messages',
       icon: Icons.chat_bubble_rounded,
-      route: '/messages',
+      route: '/doctor-messages',
       hasBadge: true,
     ),
     _NavItem(name: 'Profile', icon: Icons.person_rounded, route: '/profile'),
@@ -73,16 +74,18 @@ class _DoctorNavigationLayoutState extends State<DoctorNavigationLayout> {
     final token = prefs.getString('token');
     if (token == null) return;
     try {
-      final parts = token.split('.');
-      if (parts.length == 3) {
-        final payload = utf8.decode(
-          base64Url.decode(base64Url.normalize(parts[1])),
-        );
-        final data = json.decode(payload) as Map<String, dynamic>;
-        setState(() => _userRole = data['role'] as String?);
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      final res = await http.get(
+        Uri.parse('$API_BASE_URL/users/profile'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        setState(() => _profileImageUrl = data['profile_image']);
       }
     } catch (e) {
-      debugPrint('Token decode error: $e');
+      debugPrint('Error fetching profile image: $e');
     }
   }
 
@@ -155,9 +158,17 @@ class _DoctorNavigationLayoutState extends State<DoctorNavigationLayout> {
               height: 38,
               decoration: BoxDecoration(
                 color: _greenLight,
-                borderRadius: BorderRadius.circular(10),
+                shape: BoxShape.circle, // ✅ makes it fully round
+                image: _profileImageUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(_profileImageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: const Icon(Icons.person_outline, color: _green, size: 20),
+              child: _profileImageUrl == null
+                  ? const Icon(Icons.person_outline, color: _green, size: 20)
+                  : null,
             ),
           ),
           const SizedBox(width: 10),

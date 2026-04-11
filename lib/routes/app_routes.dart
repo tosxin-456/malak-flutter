@@ -39,6 +39,7 @@ class AppRoutes {
   static const String wallet = '/wallet';
   static const String myPatients = '/my-patients';
   static const String aiChat = '/ai-chat';
+  static const String doctorMessages = '/doctor-messages';
 
   static final Map<String, WidgetBuilder> routes = {
     // ── Auth / entry screens ──────────────────────────────────────────────
@@ -76,6 +77,10 @@ class AppRoutes {
       currentRoute: myPatients,
       child: const MyPatientsPage(),
     ),
+    doctorMessages: (context) => DoctorNavigationLayout(
+      currentRoute: doctorMessages,
+      child: const MessageScreen(), // or DoctorMessageScreen if you have one
+    ),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -84,6 +89,16 @@ class AppRoutes {
     // ── /messages/:chatId ─────────────────────────────────────────────────
     if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'messages') {
       final chatId = uri.pathSegments[1];
+      return MaterialPageRoute(
+        builder: (context) => ChatScreen(chatId: chatId),
+        settings: settings,
+      );
+    }
+
+    if (uri.pathSegments.length == 2 &&
+        uri.pathSegments[0] == 'doctor-messages') {
+      final chatId = uri.pathSegments[1];
+
       return MaterialPageRoute(
         builder: (context) => ChatScreen(chatId: chatId),
         settings: settings,
