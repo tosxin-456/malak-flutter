@@ -7,8 +7,9 @@ import 'package:malak/screens/login_type.dart';
 import 'package:malak/screens/message_screen.dart';
 import 'package:malak/screens/my_patients.dart';
 import 'package:malak/screens/notification.dart';
-import 'package:malak/screens/patient_details_screen.dart'; // ← new
+import 'package:malak/screens/patient_details_screen.dart';
 import 'package:malak/screens/profile_screen.dart';
+import 'package:malak/screens/toppinns_ai_chat_screen.dart';
 import 'package:malak/screens/wallet_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/settings_screen.dart';
@@ -37,7 +38,7 @@ class AppRoutes {
   static const String notifications = '/notifications';
   static const String wallet = '/wallet';
   static const String myPatients = '/my-patients';
-
+  static const String aiChat = '/ai-chat';
 
   static final Map<String, WidgetBuilder> routes = {
     // ── Auth / entry screens ──────────────────────────────────────────────
@@ -63,12 +64,15 @@ class AppRoutes {
     messages: (context) =>
         NavigationLayout(currentRoute: messages, child: const MessageScreen()),
 
+    // ── AI Chat ───────────────────────────────────────────────────────────
+    aiChat: (context) => const ToppinsAiChatScreen(),
+
     // ── Doctor screens with DoctorNavigationLayout ────────────────────────
     doctorDashboard: (context) => DoctorNavigationLayout(
       currentRoute: doctorDashboard,
       child: const DoctorDashboard(),
     ),
-     myPatients: (context) => DoctorNavigationLayout(
+    myPatients: (context) => DoctorNavigationLayout(
       currentRoute: myPatients,
       child: const MyPatientsPage(),
     ),
@@ -82,6 +86,15 @@ class AppRoutes {
       final chatId = uri.pathSegments[1];
       return MaterialPageRoute(
         builder: (context) => ChatScreen(chatId: chatId),
+        settings: settings,
+      );
+    }
+
+    // ── /ai-chat/:sessionId → resume a prior session ──────────────────────
+    if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'ai-chat') {
+      final sessionId = uri.pathSegments[1];
+      return MaterialPageRoute(
+        builder: (context) => ToppinsAiChatScreen(sessionId: sessionId),
         settings: settings,
       );
     }

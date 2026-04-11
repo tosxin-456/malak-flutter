@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:malak/config/api_config.dart';
 import 'package:malak/context/call_provider.dart';
-import 'package:malak/context/socket_provider.dart'; // ← new
+import 'package:malak/context/socket_provider.dart';
 import 'package:malak/services/storage_service.dart';
 import 'package:malak/widgets/global_call_ui.dart';
 import 'package:provider/provider.dart';
@@ -20,8 +20,8 @@ class MalakApp extends StatefulWidget {
 class _MalakAppState extends State<MalakApp> {
   Map<String, dynamic>? _user;
   bool _loading = true;
+  bool _disposed = false;
 
-  // Single instance — lives for the entire app lifetime
   final SocketNotifier _socketNotifier = SocketNotifier();
 
   @override
@@ -32,12 +32,16 @@ class _MalakAppState extends State<MalakApp> {
 
   @override
   void dispose() {
+    _disposed = true;
     _socketNotifier.dispose();
     super.dispose();
   }
 
   Future<void> _fetchProfile() async {
     final token = await StorageService.getToken();
+
+    // Guard after every await
+    if (_disposed || !mounted) return;
 
     if (token == null) {
       setState(() => _loading = false);
@@ -50,20 +54,28 @@ class _MalakAppState extends State<MalakApp> {
         headers: {'Authorization': 'Bearer $token'},
       );
 
+      // Guard immediately after the http await before ANY usage
+      if (_disposed || !mounted) return;
+
       if (res.statusCode == 200) {
         final user = json.decode(res.body) as Map<String, dynamic>;
+
         setState(() => _user = user);
 
-        // Initialise socket as soon as we have a userId
         final userId = user['_id']?.toString() ?? '';
         if (userId.isNotEmpty) {
+          // Guard right before init in case dispose() was called
+          // between the setState and this point
+          if (_disposed) return;
           await _socketNotifier.init(userId);
         }
       }
     } catch (e) {
       debugPrint('Error fetching profile: $e');
     } finally {
-      setState(() => _loading = false);
+      if (!_disposed && mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

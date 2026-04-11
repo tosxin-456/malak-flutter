@@ -4,12 +4,13 @@ import 'package:malak/config/api_config.dart';
 import 'package:malak/services/storage_service.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-// ─── SocketNotifier (ChangeNotifier equivalent of React SocketContext) ────────
+// ─── SocketNotifier ───────────────────────────────────────────────────────────
 
 class SocketNotifier extends ChangeNotifier {
   IO.Socket? _socket;
   bool _isConnected = false;
   String? _userId;
+  bool _isDisposed = false;
   final Set<String> _onlineUsers = {};
 
   IO.Socket? get socket => _socket;
@@ -17,21 +18,45 @@ class SocketNotifier extends ChangeNotifier {
   String? get userId => _userId;
   Set<String> get onlineUsers => Set.unmodifiable(_onlineUsers);
 
+  // ── Internal socket teardown — does NOT call super.dispose() ─────────────
+
+  Future<void> _tearDownSocket() async {
+    _socket?.disconnect();
+    _socket?.destroy();
+    _socket = null;
+    _isConnected = false;
+  }
+
+  // ── Safe notifyListeners guard ────────────────────────────────────────────
+
+  void _notify() {
+    if (!_isDisposed) notifyListeners();
+  }
+
   /// Call this once after the user is authenticated (pass in the userId).
   Future<void> init(String userId) async {
+    if (_isDisposed) return;
     if (_socket != null && _userId == userId) return; // already initialised
 
     _userId = userId;
 
     final token = await StorageService.getToken();
+
+    // Guard after every await
+    if (_isDisposed) return;
+
     if (token == null || token.isEmpty) {
       debugPrint('SocketNotifier: no token, skipping socket connection');
       return;
     }
 
-    // Tear down any previous socket before creating a new one
-    await dispose();
-    _userId = userId; // restore after dispose
+    // Tear down any previous socket WITHOUT touching super.dispose()
+    await _tearDownSocket();
+
+    // Guard after teardown await
+    if (_isDisposed) return;
+
+    _userId = userId; // restore after teardown
 
     final socketInstance = IO.io(
       SOCKET_IO,
@@ -47,22 +72,25 @@ class SocketNotifier extends ChangeNotifier {
     );
 
     socketInstance.onConnect((_) {
+      if (_isDisposed) return;
       debugPrint('Socket connected: ${socketInstance.id}');
       _isConnected = true;
       socketInstance.emit('user:online', userId);
-      notifyListeners();
+      _notify();
     });
 
     socketInstance.onDisconnect((reason) {
+      if (_isDisposed) return;
       debugPrint('Socket disconnected: $reason');
       _isConnected = false;
-      notifyListeners();
+      _notify();
     });
 
     socketInstance.onConnectError((err) {
+      if (_isDisposed) return;
       debugPrint('Socket connect error: $err');
       _isConnected = false;
-      notifyListeners();
+      _notify();
     });
 
     socketInstance.onError((err) {
@@ -70,6 +98,7 @@ class SocketNotifier extends ChangeNotifier {
     });
 
     socketInstance.on('user_status_update', (data) {
+      if (_isDisposed) return;
       if (data is Map) {
         final uid = data['userId'] as String?;
         final status = data['status'] as String?;
@@ -79,12 +108,19 @@ class SocketNotifier extends ChangeNotifier {
         } else {
           _onlineUsers.remove(uid);
         }
-        notifyListeners();
+        _notify();
       }
     });
 
+    // Final guard before assigning — dispose() may have fired during setup
+    if (_isDisposed) {
+      socketInstance.disconnect();
+      socketInstance.destroy();
+      return;
+    }
+
     _socket = socketInstance;
-    notifyListeners();
+    _notify();
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -135,8 +171,13 @@ class SocketNotifier extends ChangeNotifier {
     _socket!.emit(event, data);
   }
 
+  // ── Dispose ───────────────────────────────────────────────────────────────
+
   @override
-  Future<void> dispose() async {
+  void dispose() {
+    _isDisposed = true;
+    // Synchronous teardown only — super.dispose() marks the notifier as dead,
+    // so we clean up first then hand off. No notifyListeners() after this.
     _socket?.disconnect();
     _socket?.destroy();
     _socket = null;

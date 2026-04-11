@@ -8,11 +8,16 @@ import 'package:malak/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
+// ← The only new import you need
+import 'package:malak/components/ai_symptom_chat.dart';
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const _paystackSecretKey = 'sk_test_f5faaf8b06c41bc54016378dfa88964e479d33a6';
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// APPOINTMENTS SCREEN
+// ═══════════════════════════════════════════════════════════════════════════════
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -35,7 +40,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   bool _bookingInProgress = false;
   final _reasonController = TextEditingController();
 
-  // ── Key to force DoctorSelectionComponent to fully reset ──────────────────
   Key _doctorSelectionKey = UniqueKey();
 
   @override
@@ -51,8 +55,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     super.dispose();
   }
 
-  // ── Reset all booking fields ───────────────────────────────────────────────
-
   void _resetBookingForm() {
     setState(() {
       _selectedDoctor = null;
@@ -60,13 +62,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       _selectedDateTime = null;
       _reason = '';
       _appointmentMode = 'offline';
-      _doctorSelectionKey =
-          UniqueKey(); // forces DoctorSelectionComponent to rebuild fresh
+      _doctorSelectionKey = UniqueKey();
     });
     _reasonController.clear();
   }
-
-  // ── Network calls ──────────────────────────────────────────────────────────
 
   Future<void> _fetchProfile() async {
     final token = await StorageService.getToken();
@@ -107,61 +106,42 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     }
   }
 
-  // ── Payment ────────────────────────────────────────────────────────────────
-
   Future<String> _chargeWithPaystack() async {
     final completer = Completer<String>();
-
     final email = _user?['email'] as String? ?? 'patient@malak.app';
     final prefs = await SharedPreferences.getInstance();
-
     final fullName = prefs.getString('fullName') ?? '';
     final nameParts = fullName
         .trim()
         .split(' ')
         .where((s) => s.isNotEmpty)
         .toList();
-
     final firstName = nameParts.isNotEmpty ? nameParts.first : '';
     final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
-
     final reference = 'APPT-${DateTime.now().millisecondsSinceEpoch}';
-
-    const double amountInKobo = 2500;
-
-    debugPrint('🚀 Starting payment...');
 
     PaystackFlutter().pay(
       context: context,
       secretKey: _paystackSecretKey,
-      amount: amountInKobo,
+      amount: 2500,
       email: email,
       firstName: firstName,
       lastName: lastName,
       currency: Currency.NGN,
       reference: reference,
       callbackUrl: 'https://malak.app/payment/callback',
-
       onSuccess: (response) {
         final ref = response.reference ?? reference;
-        debugPrint('✅ SUCCESS: $ref');
-        if (!completer.isCompleted) {
-          completer.complete(ref);
-        }
+        if (!completer.isCompleted) completer.complete(ref);
       },
-
       onCancelled: (response) {
-        debugPrint('❌ CANCELLED: $response');
         if (!completer.isCompleted) {
           completer.completeError(Exception('Payment cancelled'));
         }
       },
     );
-
     return completer.future;
   }
-
-  // ── Booking ────────────────────────────────────────────────────────────────
 
   Future<void> _bookAppointment() async {
     if (_selectedDoctor == null) {
@@ -180,18 +160,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       _showSnack('Please select an appointment mode.');
       return;
     }
-
     setState(() => _bookingInProgress = true);
-
     try {
       final paymentRef = await _chargeWithPaystack();
       await _createAppointment(paymentRef);
-
       _showSnack('Appointment booked successfully!', success: true);
       _resetBookingForm();
       _fetchAppointments();
     } catch (e) {
-      debugPrint('[Booking] error: $e');
       _showSnack(e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _bookingInProgress = false);
@@ -200,7 +176,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
   Future<void> _createAppointment(String paymentRef) async {
     final token = await StorageService.getToken();
-
     final body = {
       'doctor': _selectedDoctor!.id,
       'hospital': _selectedHospitalId,
@@ -213,7 +188,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       'paymentRef': paymentRef,
       'isPaid': true,
     };
-
     final response = await http.post(
       Uri.parse('$API_BASE_URL/appointments'),
       headers: {
@@ -222,14 +196,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       },
       body: json.encode(body),
     );
-
     if (response.statusCode != 200 && response.statusCode != 201) {
       final data = json.decode(response.body);
       throw Exception(data['message'] ?? 'Failed to book appointment');
     }
   }
-
-  // ── Date/Time picker ───────────────────────────────────────────────────────
 
   Future<void> _pickDateTime() async {
     final date = await showDatePicker(
@@ -239,13 +210,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
     if (date == null || !mounted) return;
-
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
     if (time == null) return;
-
     final picked = DateTime(
       date.year,
       date.month,
@@ -253,7 +222,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       time.hour,
       time.minute,
     );
-
     if (_selectedDoctor != null) {
       final dayName = [
         'Monday',
@@ -264,14 +232,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         'Saturday',
         'Sunday',
       ][picked.weekday - 1];
-
       if (!_selectedDoctor!.availableDays.contains(dayName)) {
         _showSnack(
           'Doctor is not available on $dayName. Please select another day.',
         );
         return;
       }
-
       if (_selectedDoctor!.timeRange.isNotEmpty) {
         final parts = _selectedDoctor!.timeRange.split(' - ');
         if (parts.length == 2) {
@@ -280,11 +246,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           final startMins = startParts[0] * 60 + startParts[1];
           final endMins = endParts[0] * 60 + endParts[1];
           final pickedMins = picked.hour * 60 + picked.minute;
-
           final bool valid = startMins < endMins
               ? pickedMins >= startMins && pickedMins <= endMins
               : pickedMins >= startMins || pickedMins <= endMins;
-
           if (!valid) {
             _showSnack(
               "Selected time is outside doctor's time range (${_selectedDoctor!.timeRange})",
@@ -294,11 +258,30 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         }
       }
     }
-
     setState(() => _selectedDateTime = picked);
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  Future<void> _createNewConversation(String participantId) async {
+    try {
+      final token = await StorageService.getToken();
+      final response = await http.post(
+        Uri.parse('$API_BASE_URL/chats'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'participantId': participantId}),
+      );
+      if (!response.statusCode.toString().startsWith('2')) {
+        throw Exception('HTTP error! status: ${response.statusCode}');
+      }
+      final newChat = json.decode(response.body);
+      if (mounted) Navigator.pushNamed(context, '/messages/${newChat['_id']}');
+    } catch (e) {
+      debugPrint('Error creating conversation: $e');
+      _showSnack('Failed to create conversation. Please try again.');
+    }
+  }
 
   void _showSnack(String msg, {bool success = false}) {
     if (!mounted) return;
@@ -361,8 +344,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     'Dec',
   ][m];
 
-  // ── Build ──────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -383,8 +364,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Tabs
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
@@ -400,13 +379,16 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ),
               child: Row(
                 children: [
-                  _tabButton('book', Icons.add_circle_outline, 'Book'),
+                  _tabButton(
+                    'book',
+                    Icons.add_circle_outline,
+                    'Book Appointment',
+                  ),
                   _tabButton('history', Icons.list_alt, 'History'),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -446,13 +428,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     : const Color(0xFF9CA3AF),
               ),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: isActive
-                      ? const Color(0xFF2563EB)
-                      : const Color(0xFF9CA3AF),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                    color: isActive
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF9CA3AF),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -468,7 +454,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     final modes = (_selectedDoctor?.appointmentModes.isNotEmpty == true)
         ? _selectedDoctor!.appointmentModes.map((m) => m.toLowerCase()).toList()
         : ['offline', 'online'];
-
     final modeValue = modes.contains(_appointmentMode)
         ? _appointmentMode
         : modes.first;
@@ -488,7 +473,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Doctor Selection — key forces full reset after booking
+          // ── AI Health Assistant ─────────────────────────────────────────
+          AiSymptomChatButton(onCreateConversation: _createNewConversation),
+
+          // Doctor Selection
           DoctorSelectionComponent(
             key: _doctorSelectionKey,
             onDoctorSelect: (d) => setState(() {
@@ -737,12 +725,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     final status = appt['status'] ?? 'pending';
     final doctor = appt['doctor'] as Map<String, dynamic>? ?? {};
     final hospital = appt['hospital'] as Map<String, dynamic>? ?? {};
-
     DateTime? dateTime;
     if (appt['appointmentDateTime'] != null) {
       dateTime = DateTime.tryParse(appt['appointmentDateTime']);
     }
-
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -760,7 +746,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Status badge
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -788,8 +773,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ],
             ),
             const SizedBox(height: 10),
-
-            // Doctor Info
             Row(
               children: [
                 Container(
@@ -843,8 +826,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ],
             ),
             const SizedBox(height: 12),
-
-            // Date/Time
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
@@ -888,8 +869,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ),
             ),
             const SizedBox(height: 10),
-
-            // Toggle Details button
             GestureDetector(
               onTap: () => setState(
                 () => _openDetails[id] = !(_openDetails[id] ?? false),
@@ -912,7 +891,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 ),
               ),
             ),
-
             if (isOpen) ...[
               const SizedBox(height: 12),
               const Divider(height: 1, color: Color(0xFFE5E7EB)),
@@ -961,8 +939,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       ),
     );
   }
-
-  // ── Chat banner ────────────────────────────────────────────────────────────
 
   Widget _buildChatBanner() {
     return Container(
@@ -1043,8 +1019,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       ),
     );
   }
-
-  // ── Section card wrapper ───────────────────────────────────────────────────
 
   Widget _sectionCard({required Widget child}) {
     return Container(
