@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "586428028619",
+    "project_id": "joshua-34776",
+    "storage_bucket": "joshua-34776.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586428028619:android:d90403daadb842cdfcad4e",
+        "android_client_info": {
+          "package_name": "com.example.gudu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdSWOyKHOAc0RzPw3lrWcORjHQQlctryE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586428028619:android:4b0c7aef9a13bc0dfcad4e",
+        "android_client_info": {
+          "package_name": "com.toppinns.malak"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdSWOyKHOAc0RzPw3lrWcORjHQQlctryE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

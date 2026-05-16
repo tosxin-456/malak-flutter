@@ -1,0 +1,146 @@
+import 'package:flutter/material.dart';
+import 'package:malak/screens/appointments_screen.dart';
+import 'package:malak/screens/chat_screen.dart';
+import 'package:malak/screens/doctor_availability.dart';
+import 'package:malak/screens/doctor_dashboard.dart';
+import 'package:malak/screens/login_type.dart';
+import 'package:malak/screens/message_screen.dart';
+import 'package:malak/screens/my_patients.dart';
+import 'package:malak/screens/notification.dart';
+import 'package:malak/screens/patient_details_screen.dart';
+import 'package:malak/screens/profile_screen.dart';
+import 'package:malak/screens/toppinns_ai_chat_screen.dart';
+import 'package:malak/screens/wallet_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/settings_screen.dart';
+import '../screens/sign_in_screen.dart';
+import '../screens/sign_up_screen.dart';
+import '../screens/otp_screen.dart';
+import '../screens/initial_screen.dart';
+import '../layouts/navigation_layout.dart';
+import '../layouts/doctor_navigation_layout.dart';
+
+class AppRoutes {
+  static const String initial = '/';
+  static const String home = '/home';
+  static const String settings = '/settings';
+  static const String signIn = '/sign-in';
+  static const String signUp = '/sign-up';
+  static const String otpScreen = '/verify';
+  static const String profile = '/profile';
+  static const String appointments = '/appointments';
+  static const String messages = '/messages';
+  static const String doctorType = '/doctor-type';
+  static const String loginType = '/login-type';
+  static const String doctorAvailability = '/doctor-availability';
+  static const String doctorDashboard = '/doctor-dashboard';
+  static const String nurseDashboard = '/nurse-dashboard';
+  static const String notifications = '/notifications';
+  static const String wallet = '/wallet';
+  static const String myPatients = '/my-patients';
+  static const String aiChat = '/ai-chat';
+  static const String doctorMessages = '/doctor-messages';
+
+  static final Map<String, WidgetBuilder> routes = {
+    // ── Auth / entry screens ──────────────────────────────────────────────
+    initial: (context) => const InitialScreen(),
+    signIn: (context) => const SignInScreen(),
+    signUp: (context) => const SignUpScreen(),
+    otpScreen: (context) => const OtpVerificationPage(),
+    profile: (context) => const ProfilePage(),
+    loginType: (context) => const LoginTypeScreen(),
+    doctorAvailability: (context) => const DoctorAvailabilityScreen(),
+    notifications: (context) => const NotificationsScreen(),
+    wallet: (context) => const WalletPage(),
+    // profile: (context) => const ProfilePage(),
+
+    // ── Patient screens with NavigationLayout ─────────────────────────────
+    // home: (context) =>
+    //     NavigationLayout(currentRoute: home, child: const HomeScreen()),
+    // appointments: (context) => NavigationLayout(
+    //   currentRoute: appointments,
+    //   child: const AppointmentsScreen(),
+    // ),
+    // settings: (context) =>
+    //     NavigationLayout(currentRoute: settings, child: const SettingsScreen()),
+    // messages: (context) =>
+    //     NavigationLayout(currentRoute: messages, child: const MessageScreen()),
+    home: (context) => const NavigationLayout(),
+    // ── AI Chat ───────────────────────────────────────────────────────────
+    aiChat: (context) => const ToppinsAiChatScreen(),
+    doctorDashboard: (context) => const DoctorNavigationLayout(),
+
+    // ── Doctor screens with DoctorNavigationLayout ────────────────────────
+    // doctorDashboard: (context) => DoctorNavigationLayout(
+    //   currentRoute: doctorDashboard,
+    //   child: const DoctorDashboard(),
+    // ),
+    // myPatients: (context) => DoctorNavigationLayout(
+    //   currentRoute: myPatients,
+    //   child: const MyPatientsPage(),
+    // ),
+    // doctorMessages: (context) => DoctorNavigationLayout(
+    //   currentRoute: doctorMessages,
+    //   child: const MessageScreen(), // or DoctorMessageScreen if you have one
+    // ),
+  };
+
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    final uri = Uri.parse(settings.name ?? '/');
+
+    // ── /messages/:chatId ─────────────────────────────────────────────────
+    if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'messages') {
+      final chatId = uri.pathSegments[1];
+      return MaterialPageRoute(
+        builder: (context) => ChatScreen(chatId: chatId),
+        settings: settings,
+      );
+    }
+
+    if (uri.pathSegments.length == 2 &&
+        uri.pathSegments[0] == 'doctor-messages') {
+      final chatId = uri.pathSegments[1];
+
+      return MaterialPageRoute(
+        builder: (context) => ChatScreen(chatId: chatId),
+        settings: settings,
+      );
+    }
+
+    // ── /ai-chat/:sessionId → resume a prior session ──────────────────────
+    if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'ai-chat') {
+      final sessionId = uri.pathSegments[1];
+      return MaterialPageRoute(
+        builder: (context) => ToppinsAiChatScreen(sessionId: sessionId),
+        settings: settings,
+      );
+    }
+
+    // ── /patient/:patientId → PatientDetailsScreen ────────────────────────
+    if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'patient') {
+      final args = settings.arguments as Map<String, dynamic>?;
+      final appointmentFull =
+          args?['appointmentFull'] as Map<String, dynamic>? ?? {};
+      return MaterialPageRoute(
+        builder: (context) =>
+            PatientDetailsScreen(appointmentFull: appointmentFull),
+        settings: settings,
+      );
+    }
+
+    // ── Static routes ─────────────────────────────────────────────────────
+    if (routes.containsKey(settings.name)) {
+      return MaterialPageRoute(
+        builder: routes[settings.name]!,
+        settings: settings,
+      );
+    }
+
+    // ── Fallback ──────────────────────────────────────────────────────────
+    return MaterialPageRoute(
+      builder: (context) =>
+          const Scaffold(body: Center(child: Text('Route not found'))),
+      settings: settings,
+    );
+  }
+}
