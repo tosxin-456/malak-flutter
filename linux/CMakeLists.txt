@@ -7,11 +7,7 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "malak")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-<<<<<<< HEAD
 set(APPLICATION_ID "com.toppinns.malak")
-=======
-set(APPLICATION_ID "com.example.malak")
->>>>>>> 05f2fdca519df8b567c355e69859aa55c83c7393
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

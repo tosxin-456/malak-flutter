@@ -1,5 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-<<<<<<< HEAD
     package="com.toppinns.malak">
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -10,12 +9,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-=======
-    package="com.example.malak">
-
-    <!-- Add Internet permission so the app can make network requests -->
-    <uses-permission android:name="android.permission.INTERNET"/>
->>>>>>> 05f2fdca519df8b567c355e69859aa55c83c7393
 
     <application
         android:label="malak"
