@@ -21,7 +21,10 @@ plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "8.9.1" apply false
     id("org.jetbrains.kotlin.android") version "2.1.0" apply false
+<<<<<<< HEAD
     id("com.google.gms.google-services") version "4.4.2" apply false
+=======
+>>>>>>> 05f2fdca519df8b567c355e69859aa55c83c7393
 }
 
 include(":app")

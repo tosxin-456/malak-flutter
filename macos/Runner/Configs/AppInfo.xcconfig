@@ -8,7 +8,11 @@
 PRODUCT_NAME = malak
 
 // The application's bundle identifier
+<<<<<<< HEAD
 PRODUCT_BUNDLE_IDENTIFIER = com.toppinns.malak
+=======
+PRODUCT_BUNDLE_IDENTIFIER = com.example.malak
+>>>>>>> 05f2fdca519df8b567c355e69859aa55c83c7393
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.

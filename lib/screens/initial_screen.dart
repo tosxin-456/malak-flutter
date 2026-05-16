@@ -29,12 +29,8 @@ class _InitialScreenState extends State<InitialScreen> {
         if (!isExpired) {
           if (context.mounted) {
             await MalakApp.of(context)?.refreshSession();
-            await SessionBootstrap.connect(context);
           }
           if (!context.mounted) return;
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
-          return;
-        } else {
           // ❌ Expired → clear it
           await StorageService.clearToken();
         }

@@ -50,11 +50,15 @@ dependencies:
   url_launcher: ^6.2.5 
   provider: ^6.1.2
   agora_rtc_engine: ^6.3.2
+<<<<<<< HEAD
   permission_handler: ^11.3.1
   paystack_for_flutter: ^1.0.4
   firebase_core: ^3.8.1
   firebase_messaging: ^15.1.6
   flutter_local_notifications: ^18.0.1
+=======
+  paystack_for_flutter: ^1.0.4
+>>>>>>> 05f2fdca519df8b567c355e69859aa55c83c7393
 
 
 dev_dependencies:

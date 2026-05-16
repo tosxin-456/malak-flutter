@@ -9,9 +9,12 @@ import agora_rtc_engine
 import audioplayers_darwin
 import file_picker
 import file_selector_macos
+<<<<<<< HEAD
 import firebase_core
 import firebase_messaging
 import flutter_local_notifications
+=======
+>>>>>>> 05f2fdca519df8b567c355e69859aa55c83c7393
 import flutter_secure_storage_macos
 import google_sign_in_ios
 import iris_method_channel
@@ -27,9 +30,12 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   AudioplayersDarwinPlugin.register(with: registry.registrar(forPlugin: "AudioplayersDarwinPlugin"))
   FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
   FileSelectorPlugin.register(with: registry.registrar(forPlugin: "FileSelectorPlugin"))
+<<<<<<< HEAD
   FLTFirebaseCorePlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseCorePlugin"))
   FLTFirebaseMessagingPlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseMessagingPlugin"))
   FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
+=======
+>>>>>>> 05f2fdca519df8b567c355e69859aa55c83c7393
   FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
   FLTGoogleSignInPlugin.register(with: registry.registrar(forPlugin: "FLTGoogleSignInPlugin"))
   IrisMethodChannelPlugin.register(with: registry.registrar(forPlugin: "IrisMethodChannelPlugin"))
